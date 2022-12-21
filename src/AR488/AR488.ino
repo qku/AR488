@@ -13,6 +13,10 @@
 #include "AR488_ComPorts.h"
 #include "AR488_Eeprom.h"
 
+// external trigger pin
+int trigPin = 6;
+int triggered = false;
+int already_triggered = false; // whether triggered before
 
 /*
 #ifdef USE_INTERRUPTS
@@ -525,6 +529,9 @@ void setup() {
 
   dataPort.flush();
 
+  // trigger pin
+  pinMode(trigPin, INPUT);
+
 }
 /****** End of Arduino standard SETUP procedure *****/
 
@@ -666,6 +673,18 @@ if (lnRdy>0){
   if (dataPort.available()) lnRdy = serialIn_h();
 
   delayMicroseconds(5);
+
+  // read external trigger pin
+  triggered = digitalRead(trigPin);
+  if (triggered != already_triggered) {
+    already_triggered = triggered;
+    if (triggered) {
+      // send out trigger command
+      Serial.println("Received external trigger. Sending out GPIB trigger.");
+      trg_h(NULL);
+    }
+  }
+  
 }
 /***** END MAIN LOOP *****/
 
